@@ -9,19 +9,20 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["debian-openssl-1.0.x"]
 }
 
 model User {
-  id         Int     @id @default(autoincrement())
-  cid        String  @unique @default(cuid())
-  email      String  @unique
-  name       String
-  password   String
-  role       Int
-  isVerified Boolean @default(false)
+  id          Int     @id @default(autoincrement())
+  cid         String  @unique @default(cuid())
+  email       String  @unique
+  name        String
+  password    String
+  role        Int
+  isVerified  Boolean @default(false)
   verifyToken String? @unique
-  expireToken String? 
+  expireToken String?
 }
 
 model Session {
