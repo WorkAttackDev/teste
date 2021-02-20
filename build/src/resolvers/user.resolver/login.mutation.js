@@ -1,9 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const argon2_1 = __importDefault(require("argon2"));
+const password_1 = require("../../util/password");
 const user_validate_1 = require("./user.validate");
 const login = async (args, ctx) => {
     const { email, password } = args;
@@ -24,7 +21,7 @@ const login = async (args, ctx) => {
         return {
             errors: [{ field: "email", message: "email não verificado" }],
         };
-    if (!(await argon2_1.default.verify(user.password, password)))
+    if (!(await password_1.passwordCompare(password, user.password)))
         return {
             errors: [{ field: "password", message: "password incorreta" }],
         };

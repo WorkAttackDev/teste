@@ -1,10 +1,12 @@
-import argon2 from "argon2";
 import type { MyContext } from "../../context";
 import { confirmAccountEmail } from "../../libs/email";
 import type User from "../../object_types/User";
 import type { SignUpInput, UserResponse } from "./types";
 import { signupValidate } from "./user.validate";
 import { v4 as uuidV4 } from "uuid";
+import { promisify } from "util";
+import { hashPassword } from "../../util/password";
+
 
 const signup = async (
   args: SignUpInput,
@@ -17,7 +19,9 @@ const signup = async (
 
   if (errors) return errors;
 
-  const hashedPassword = await argon2.hash(password);
+
+  let hashedPassword:string = await hashPassword(password);
+
   const token = uuidV4();
 
   let user: User | undefined = undefined;

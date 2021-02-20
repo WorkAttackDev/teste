@@ -1,7 +1,9 @@
-import argon2 from "argon2";
+
 import type { MyContext } from "../../context";
+import { passwordCompare } from "../../util/password";
 import type { LogInInput, UserResponse } from "./types";
 import { loginValidate } from "./user.validate";
+
 
 const login = async (
   args: LogInInput,
@@ -31,13 +33,12 @@ const login = async (
       errors: [{ field: "email", message: "email não verificado" }],
     };
 
-  if (!(await argon2.verify(user.password, password)))
+  if (!(await passwordCompare(password, user.password)))
     return {
       errors: [{ field: "password", message: "password incorreta" }],
     };
 
   req.session.userId = user.id;
-  
 
   return { user };
 };

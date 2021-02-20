@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.changePassword = void 0;
-const argon2_1 = __importDefault(require("argon2"));
+const password_1 = require("../../util/password");
 const user_validate_1 = require("./user.validate");
 const changePassword = async (args, ctx) => {
     var _a;
@@ -20,7 +17,7 @@ const changePassword = async (args, ctx) => {
             errors: [{ field: "token", message: "chave de recuperação já expirou" }],
         };
     }
-    const hashedPassword = await argon2_1.default.hash(password);
+    const hashedPassword = await password_1.hashPassword(password);
     try {
         const updatedUser = await prisma.user.update({
             where: { id: user.id },

@@ -1,5 +1,5 @@
-import argon2 from "argon2";
 import type { MyContext } from "../../context";
+import { hashPassword } from "../../util/password";
 import type { ChangePasswordInput, UserResponse } from "./types";
 import { hasPasswordError } from "./user.validate";
 
@@ -23,7 +23,7 @@ export const changePassword = async (
     };
   }
 
-  const hashedPassword = await argon2.hash(password);
+  const hashedPassword = await hashPassword(password);
 
   try {
     const updatedUser = await prisma.user.update({
