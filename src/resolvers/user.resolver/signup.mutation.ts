@@ -4,7 +4,6 @@ import type User from "../../object_types/User";
 import type { SignUpInput, UserResponse } from "./types";
 import { signupValidate } from "./user.validate";
 import { v4 as uuidV4 } from "uuid";
-import { promisify } from "util";
 import { hashPassword } from "../../util/password";
 
 
