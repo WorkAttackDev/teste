@@ -1,10 +1,11 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import type { MyContext } from "../../context";
-import User from "../../object_types/User";
+import User from "../../entities/User";
 import { COOKIE_NAME } from "../../util/constants";
 import { changePassword } from "./change_password.mutation";
 import confirmAccount from "./confirm_account.mutation";
 import { createEmailLogin } from "./create_email_login.mutation";
+import deleteUser from "./delete_user";
 import { emailLogin } from "./email_login.mutation";
 import { forgotPassword } from "./forgot_password.mutation";
 import login from "./login.mutation";
@@ -15,25 +16,25 @@ import {
   SignUpInput,
   LogInInput,
   ChangePasswordInput,
+  HasChangeResponse,
 } from "./types";
 
 @Resolver()
 class UserResolver {
-  
   @Query(() => User, { nullable: true })
-  async me(@Ctx() { prisma, req }: MyContext): Promise<User | null> {
+  async me(@Ctx() { req }: MyContext): Promise<User | null> {
     const userId = req.session.userId;
 
     if (!userId) return null;
 
-    const user = await prisma.user.findFirst({ where: { id: userId } });
+    const user = await User.findOne(userId);
 
     return user ?? null;
   }
 
   @Query(() => [User])
-  async getUsers(@Ctx() ctx: MyContext): Promise<User[]> {
-    return ctx.prisma.user.findMany();
+  async getUsers(): Promise<User[]> {
+    return await User.find();
   }
 
   @Mutation(() => UserResponse)
@@ -53,12 +54,12 @@ class UserResolver {
     return await sendConfirmAccount(email.toLowerCase(), ctx);
   }
 
-  @Mutation(() => UserResponse)
+  @Mutation(() => HasChangeResponse)
   async confirmAccount(
     @Arg("token") token: string,
 
     @Ctx() ctx: MyContext
-  ): Promise<UserResponse> {
+  ): Promise<HasChangeResponse> {
     return confirmAccount(token, ctx);
   }
 
@@ -108,20 +109,24 @@ class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async forgotPassword(
-    @Arg("email") email: string,
-    @Ctx() ctx: MyContext
-  ): Promise<boolean> {
-    return await forgotPassword(email.toLowerCase(), ctx);
+  async forgotPassword(@Arg("email") email: string): Promise<boolean> {
+    return await forgotPassword(email.toLowerCase());
   }
 
   @Mutation(() => UserResponse)
   async changePassword(
     @Arg("args") args: ChangePasswordInput,
-
     @Ctx() ctx: MyContext
   ): Promise<UserResponse> {
     return changePassword(args, ctx);
+  }
+
+  @Mutation(() => HasChangeResponse)
+  async deleteUser(
+    @Arg("userId") userId: number,
+    @Ctx() ctx: MyContext
+  ): Promise<HasChangeResponse> {
+    return deleteUser(userId, ctx);
   }
 }
 

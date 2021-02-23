@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+// import type { PrismaClient } from "@prisma/client";
 import type { Request, Response } from "express";
 
 declare module "express-session" {
@@ -8,7 +8,7 @@ declare module "express-session" {
 }
 
 export type MyContext = {
-  prisma: PrismaClient;
+  // prisma: PrismaClient;
   req: Request;
   res: Response;
 };

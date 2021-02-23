@@ -1,4 +1,6 @@
-import type { MyContext } from "../../context";
+import { MyContext } from "../../context";
+import User from "../../entities/User";
+import { oneDayTimeout } from "../../util/date_handler";
 import { hashPassword } from "../../util/password";
 import type { ChangePasswordInput, UserResponse } from "./types";
 import { hasPasswordError } from "./user.validate";
@@ -8,16 +10,15 @@ export const changePassword = async (
   ctx: MyContext
 ): Promise<UserResponse> => {
   const { password, token } = args;
-  const { prisma, req } = ctx;
+
+  const { req } = ctx;
 
   const passwordError = hasPasswordError(password);
   if (passwordError) return passwordError;
 
-  const user = await prisma.user.findFirst({ where: { verifyToken: token } });
+  const user = await User.findOne({ where: { verifyToken: token } });
 
-  const tokenTimeout: number = parseInt(user?.expireToken ?? "0");
-
-  if (!user || tokenTimeout < Date.now()) {
+  if (!user || oneDayTimeout().getTime() < Date.now()) {
     return {
       errors: [{ field: "token", message: "chave de recuperação já expirou" }],
     };
@@ -26,19 +27,16 @@ export const changePassword = async (
   const hashedPassword = await hashPassword(password);
 
   try {
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        expireToken: "0",
-        verifyToken: null,
-      },
+    User.update(user.id, {
+      password: hashedPassword,
+      expireToken: new Date(),
+      verifyToken: undefined,
     });
 
-    req.session.userId = updatedUser.id;
+    req.session.userId = user.id;
 
     return {
-      user: updatedUser,
+      user: user,
     };
   } catch (e) {
     console.log(e);

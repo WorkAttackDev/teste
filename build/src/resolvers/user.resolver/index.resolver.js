@@ -16,11 +16,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_graphql_1 = require("type-graphql");
-const User_1 = __importDefault(require("../../object_types/User"));
+const User_1 = __importDefault(require("../../entities/User"));
 const constants_1 = require("../../util/constants");
 const change_password_mutation_1 = require("./change_password.mutation");
 const confirm_account_mutation_1 = __importDefault(require("./confirm_account.mutation"));
 const create_email_login_mutation_1 = require("./create_email_login.mutation");
+const delete_user_1 = __importDefault(require("./delete_user"));
 const email_login_mutation_1 = require("./email_login.mutation");
 const forgot_password_mutation_1 = require("./forgot_password.mutation");
 const login_mutation_1 = __importDefault(require("./login.mutation"));
@@ -28,15 +29,15 @@ const send_confirm_account_1 = require("./send_confirm_account");
 const signup_mutation_1 = __importDefault(require("./signup.mutation"));
 const types_1 = require("./types");
 let UserResolver = class UserResolver {
-    async me({ prisma, req }) {
+    async me({ req }) {
         const userId = req.session.userId;
         if (!userId)
             return null;
-        const user = await prisma.user.findFirst({ where: { id: userId } });
+        const user = await User_1.default.findOne(userId);
         return user !== null && user !== void 0 ? user : null;
     }
-    async getUsers(ctx) {
-        return ctx.prisma.user.findMany();
+    async getUsers() {
+        return await User_1.default.find();
     }
     async signup(args, ctx) {
         return signup_mutation_1.default(args, ctx);
@@ -69,11 +70,14 @@ let UserResolver = class UserResolver {
             resolve(true);
         }));
     }
-    async forgotPassword(email, ctx) {
-        return await forgot_password_mutation_1.forgotPassword(email.toLowerCase(), ctx);
+    async forgotPassword(email) {
+        return await forgot_password_mutation_1.forgotPassword(email.toLowerCase());
     }
     async changePassword(args, ctx) {
         return change_password_mutation_1.changePassword(args, ctx);
+    }
+    async deleteUser(userId, ctx) {
+        return delete_user_1.default(userId, ctx);
     }
 };
 __decorate([
@@ -85,9 +89,8 @@ __decorate([
 ], UserResolver.prototype, "me", null);
 __decorate([
     type_graphql_1.Query(() => [User_1.default]),
-    __param(0, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "getUsers", null);
 __decorate([
@@ -107,7 +110,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "sendConfirmAccount", null);
 __decorate([
-    type_graphql_1.Mutation(() => types_1.UserResponse),
+    type_graphql_1.Mutation(() => types_1.HasChangeResponse),
     __param(0, type_graphql_1.Arg("token")),
     __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
@@ -148,9 +151,8 @@ __decorate([
 __decorate([
     type_graphql_1.Mutation(() => Boolean),
     __param(0, type_graphql_1.Arg("email")),
-    __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "forgotPassword", null);
 __decorate([
@@ -161,6 +163,14 @@ __decorate([
     __metadata("design:paramtypes", [types_1.ChangePasswordInput, Object]),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "changePassword", null);
+__decorate([
+    type_graphql_1.Mutation(() => types_1.HasChangeResponse),
+    __param(0, type_graphql_1.Arg("userId")),
+    __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "deleteUser", null);
 UserResolver = __decorate([
     type_graphql_1.Resolver()
 ], UserResolver);

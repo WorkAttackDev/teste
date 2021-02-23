@@ -1,17 +1,16 @@
 import type { MyContext } from "../../context";
+import User from "../../entities/User";
 import type { UserResponse } from "./types";
 
 export const emailLogin = async (
   token: string,
   ctx: MyContext
 ): Promise<UserResponse> => {
-  const { prisma, req } = ctx;
+  const { req } = ctx;
 
-  const user = await prisma.user.findFirst({ where: { verifyToken: token } });
+  const user = await User.findOne({ where: { verifyToken: token } });
 
-  const tokenTimeout: number = parseInt(user?.expireToken ?? "0");
-
-  if (!user || tokenTimeout < Date.now()) {
+  if (!user || user.expireToken.getTime() < Date.now()) {
     return {
       errors: [{ field: "token", message: "chave de recuperação já expirou" }],
     };
@@ -23,18 +22,15 @@ export const emailLogin = async (
     };
 
   try {
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        expireToken: "0",
-        verifyToken: null,
-      },
+    await User.update(user.id, {
+      expireToken: Date.now(),
+      verifyToken: undefined,
     });
 
-    // req.session.userId = updatedUser.id;
+    req.session.userId = user.id;
 
     return {
-      user: updatedUser,
+      user: user,
     };
   } catch (e) {
     console.log(e);

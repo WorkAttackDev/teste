@@ -1,35 +1,35 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.changePassword = void 0;
+const User_1 = __importDefault(require("../../entities/User"));
+const date_handler_1 = require("../../util/date_handler");
 const password_1 = require("../../util/password");
 const user_validate_1 = require("./user.validate");
 const changePassword = async (args, ctx) => {
-    var _a;
     const { password, token } = args;
-    const { prisma, req } = ctx;
+    const { req } = ctx;
     const passwordError = user_validate_1.hasPasswordError(password);
     if (passwordError)
         return passwordError;
-    const user = await prisma.user.findFirst({ where: { verifyToken: token } });
-    const tokenTimeout = parseInt((_a = user === null || user === void 0 ? void 0 : user.expireToken) !== null && _a !== void 0 ? _a : "0");
-    if (!user || tokenTimeout < Date.now()) {
+    const user = await User_1.default.findOne({ where: { verifyToken: token } });
+    if (!user || date_handler_1.oneDayTimeout().getTime() < Date.now()) {
         return {
             errors: [{ field: "token", message: "chave de recuperação já expirou" }],
         };
     }
     const hashedPassword = await password_1.hashPassword(password);
     try {
-        const updatedUser = await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                password: hashedPassword,
-                expireToken: "0",
-                verifyToken: null,
-            },
+        User_1.default.update(user.id, {
+            password: hashedPassword,
+            expireToken: new Date(),
+            verifyToken: undefined,
         });
-        req.session.userId = updatedUser.id;
+        req.session.userId = user.id;
         return {
-            user: updatedUser,
+            user: user,
         };
     }
     catch (e) {

@@ -1,5 +1,5 @@
 import { Field, InputType, ObjectType } from "type-graphql";
-import User from "../../object_types/User";
+import User from "../../entities/User";
 
 @ObjectType()
 class FieldError {
@@ -17,6 +17,15 @@ export class UserResponse {
 
   @Field(() => User, { nullable: true })
   user?: User;
+}
+
+@ObjectType()
+export class HasChangeResponse {
+  @Field(() => [FieldError], { nullable: true })
+  errors?: FieldError[];
+
+  @Field(() => Boolean, { nullable: true })
+  change?: boolean;
 }
 
 @InputType()

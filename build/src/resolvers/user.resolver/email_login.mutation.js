@@ -1,12 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.emailLogin = void 0;
+const User_1 = __importDefault(require("../../entities/User"));
 const emailLogin = async (token, ctx) => {
-    var _a;
-    const { prisma, req } = ctx;
-    const user = await prisma.user.findFirst({ where: { verifyToken: token } });
-    const tokenTimeout = parseInt((_a = user === null || user === void 0 ? void 0 : user.expireToken) !== null && _a !== void 0 ? _a : "0");
-    if (!user || tokenTimeout < Date.now()) {
+    const { req } = ctx;
+    const user = await User_1.default.findOne({ where: { verifyToken: token } });
+    if (!user || user.expireToken.getTime() < Date.now()) {
         return {
             errors: [{ field: "token", message: "chave de recuperação já expirou" }],
         };
@@ -16,16 +18,13 @@ const emailLogin = async (token, ctx) => {
             errors: [{ field: "email", message: "email não verificado" }],
         };
     try {
-        const updatedUser = await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                expireToken: "0",
-                verifyToken: null,
-            },
+        await User_1.default.update(user.id, {
+            expireToken: Date.now(),
+            verifyToken: undefined,
         });
-        // req.session.userId = updatedUser.id;
+        req.session.userId = user.id;
         return {
-            user: updatedUser,
+            user: user,
         };
     }
     catch (e) {

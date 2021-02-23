@@ -1,30 +1,31 @@
 import { v4 as uuid } from "uuid";
 import type { MyContext } from "../../context";
+import User from "../../entities/User";
 import { confirmAccountEmail } from "../../libs/email";
+import { oneDayTimeout } from "../../util/date_handler";
 import { hasEmailError } from "./user.validate";
 
 export const sendConfirmAccount = async (
   email: string,
   ctx: MyContext
 ): Promise<boolean> => {
-  const { prisma } = ctx;
+  // const { prisma } = ctx;
 
   const emailError = hasEmailError(email);
   if (emailError) return false;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await User.findOne({ where: { email } });
 
   if (!user) return false;
 
   const token = uuid();
 
-  const oneDay = Date.now() + 1000 * 60 * 60 * 24 + "";
 
   try {
-    await prisma.user.update({
-      where: { email },
-      data: { verifyToken: token, expireToken: oneDay },
-    });
+    await User.update(
+      { id: user.id },
+      { verifyToken: token, expireToken: oneDayTimeout() }
+    );
 
     await confirmAccountEmail(email, token);
 

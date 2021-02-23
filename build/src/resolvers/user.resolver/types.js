@@ -12,9 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChangePasswordInput = exports.LogInInput = exports.SignUpInput = exports.UserResponse = void 0;
+exports.ChangePasswordInput = exports.LogInInput = exports.SignUpInput = exports.HasChangeResponse = exports.UserResponse = void 0;
 const type_graphql_1 = require("type-graphql");
-const User_1 = __importDefault(require("../../object_types/User"));
+const User_1 = __importDefault(require("../../entities/User"));
 let FieldError = class FieldError {
 };
 __decorate([
@@ -42,6 +42,20 @@ UserResponse = __decorate([
     type_graphql_1.ObjectType()
 ], UserResponse);
 exports.UserResponse = UserResponse;
+let HasChangeResponse = class HasChangeResponse {
+};
+__decorate([
+    type_graphql_1.Field(() => [FieldError], { nullable: true }),
+    __metadata("design:type", Array)
+], HasChangeResponse.prototype, "errors", void 0);
+__decorate([
+    type_graphql_1.Field(() => Boolean, { nullable: true }),
+    __metadata("design:type", Boolean)
+], HasChangeResponse.prototype, "change", void 0);
+HasChangeResponse = __decorate([
+    type_graphql_1.ObjectType()
+], HasChangeResponse);
+exports.HasChangeResponse = HasChangeResponse;
 let SignUpInput = class SignUpInput {
 };
 __decorate([

@@ -1,18 +1,16 @@
 import type { MyContext } from "../../context";
-import type { UserResponse } from "./types";
+import User from "../../entities/User";
+import type { HasChangeResponse } from "./types";
 
 const confirmAccount = async (
   token: string,
 
   ctx: MyContext
-): Promise<UserResponse> => {
-  const { prisma } = ctx;
-
+): Promise<HasChangeResponse> => {
   try {
-    const user = await prisma.user.update({
-      data: { isVerified: true, verifyToken: "", expireToken: "0" },
-      where: { verifyToken: token },
-    });
+    const user = await User.findOne({ where: { verifyToken: token } });
+
+    const { req } = ctx;
 
     if (!user)
       return {
@@ -24,9 +22,15 @@ const confirmAccount = async (
         ],
       };
 
-    // req.session.userId = user.id;
+    await User.update(user.id, {
+      isVerified: true,
+      verifyToken: undefined,
+      expireToken: new Date(),
+    });
 
-    return { user };
+    req.session.userId = user.id;
+
+    return { change: true };
   } catch (error) {
     console.log(error);
 
